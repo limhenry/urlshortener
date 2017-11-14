@@ -60,9 +60,9 @@ exports.shortenUrl = functions.https.onRequest((req, res) => {
             if (!doc.exists && !doc.data().fullurl) {
                 res.status(404).send(notFound)
             } else {
-                console.log(doc.data().count + 1)
                 urlRef.update({count: doc.data().count + 1});
-                res.redirect(doc.data().fullurl);
+                var url = doc.data().fullurl.replace('http://', '').replace('https://', '');
+                res.redirect('http://' + url);
             }
         })
         .catch(err => {

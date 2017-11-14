@@ -65,3 +65,5 @@ package-lock.json
 
 # Firebase
 .firebaserc
+
+build

@@ -4,6 +4,12 @@
 
 > A URL Shortener built with Firebase and Preact
 
+## Features
+ - Material Design Dashboard
+ - Custom short URL
+ - View click counts
+ - Easy to deploy (Firebase Hosting and Cloud Functions)
+
 ## Techs
  - [Preact](https://preactjs.com/)  
  - [Firebase](https://firebase.google.com) (Cloud Firestore, Cloud Functions and Authentication)  

@@ -61,8 +61,11 @@ exports.shortenUrl = functions.https.onRequest((req, res) => {
                 res.status(404).send(notFound)
             } else {
                 urlRef.update({count: doc.data().count + 1});
-                var url = doc.data().fullurl.replace('http://', '').replace('https://', '');
-                res.redirect('http://' + url);
+                var fullurl = doc.data().fullurl;
+                if (!fullurl.includes('http://') && !fullurl.includes('https://')) {
+                    fullurl = 'http://' + fullurl;
+                }
+                res.redirect(fullurl);
             }
         })
         .catch(err => {

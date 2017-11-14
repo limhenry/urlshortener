@@ -2,6 +2,9 @@ addEventListener('message', (d) => {
     const data = d.data;
     data.forEach(item => {
         item.created = _computeTime(item.timestamp);
+        if (!item.fullurl.includes('http://') && !item.fullurl.includes('https://')) {
+            item.fullurl = 'http://' + item.fullurl;
+        }
     })
     postMessage(data)
 });

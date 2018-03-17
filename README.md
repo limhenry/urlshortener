@@ -42,6 +42,14 @@ insert your config and update URL with your URL in public/src/index.js
 	};
 
 ```
+Build preact in public folder
+
+```
+preact build --no-prerender
+```
+
+firebase deploy
+
 
 ## Techs
  - [Preact](https://preactjs.com/)  

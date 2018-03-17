@@ -13,32 +13,33 @@ export default class App extends Component {
 	state = {
 		// TODO: Update your url, without slash (ie: goo.gl)
 		url: 'go.limhenry.xyz',
-		data: [],
+		data: []
 	}
 
 	constructor() {
 		super();
 
-		// TODO: Update the Firebase config below 
+		// TODO: Update the Firebase config below
 		const config = {
-			apiKey: "AIzaSyDu9g3xIJ5Z46nQrRCYCeOIutx3ZUpxrRo",
-			authDomain: "url-shortener-d5b38.firebaseapp.com",
-			databaseURL: "https://url-shortener-d5b38.firebaseio.com",
-			projectId: "url-shortener-d5b38",
-			storageBucket: "url-shortener-d5b38.appspot.com",
-			messagingSenderId: "349795577578"
+			apiKey: 'AIzaSyDu9g3xIJ5Z46nQrRCYCeOIutx3ZUpxrRo',
+			authDomain: 'url-shortener-d5b38.firebaseapp.com',
+			databaseURL: 'https://url-shortener-d5b38.firebaseio.com',
+			projectId: 'url-shortener-d5b38',
+			storageBucket: 'url-shortener-d5b38.appspot.com',
+			messagingSenderId: '349795577578'
 		};
 
+		
 		firebase.initializeApp(config);
 		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
 				document.getElementById('loading').style.display = 'none';
 				document.getElementById('home').style.display = 'block';
-				this.showToast("Loading ...", 0);
+				this.showToast('Loading ...', 0);
 				this.getData();
 			}
 			else {
-				var provider = new firebase.auth.GoogleAuthProvider();
+				let provider = new firebase.auth.GoogleAuthProvider();
 				firebase.auth().signInWithRedirect(provider);
 			}
 		});
@@ -46,51 +47,52 @@ export default class App extends Component {
 	}
 
 	getData = () => {
-		var worker = new Worker();
+		let worker = new Worker();
 		worker.addEventListener('message', (d) => {
 			this.setState({ data: d.data });
 			document.getElementById('originalurl').value = '';
 			document.getElementById('shorturl').value = '';
 			this._toastClosed();
-		})
+		});
 
-		var data = [];
+		let data = [];
 		this.db.collection('url').orderBy('timestamp', 'desc').get().then(querySnapshot => {
 			querySnapshot.forEach(doc => {
-				data.push(doc.data())
+				data.push(doc.data());
 			});
 			worker.postMessage(data);
 		}).catch(error => {
-			this.showToast("Something went wrong. Please refresh the page.");
+			this.showToast('Something went wrong. Please refresh the page.');
 		});
 	}
 
 	generateShortUrl = () => {
-		var shorturl = '';
-		var length = 6;
-		var string = '23456789abcdefghijkmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ';
-		for (var i = 0; i < length; i++) {
+		let shorturl = '';
+		let length = 6;
+		let string = '23456789abcdefghijkmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ';
+		for (let i = 0; i < length; i++) {
 			shorturl += string.charAt(Math.floor(Math.random() * string.length));
 		}
 		return shorturl;
 	}
 
 	shortenUrl = () => {
-		var originalurl = document.getElementById('originalurl').value;
-		var custom_shorturl = document.getElementById('shorturl').value.replace(this.state.url + '/', '');
+		let originalurl = document.getElementById('originalurl').value;
+		let customShorturl = document.getElementById('shorturl').value.replace(this.state.url + '/', '');
+		let shorturl;
 		if (originalurl) {
-			this.showToast("Loading ...", 0);
+			this.showToast('Loading ...', 0);
 			if (document.getElementById('shorturl').value) {
-				var shorturl = custom_shorturl;
+				shorturl = customShorturl;
 			}
 			else {
-				var shorturl = this.generateShortUrl();
+				shorturl = this.generateShortUrl();
 			}
-			var urlRef = this.db.collection('url').doc(shorturl);
+			let urlRef = this.db.collection('url').doc(shorturl);
 			urlRef.get().then(doc => {
 				if (!doc.exists) {
-					this.db.collection("url").doc(shorturl).set({
-						shorturl: shorturl,
+					this.db.collection('url').doc(shorturl).set({
+						shorturl,
 						fullurl: originalurl,
 						count: 0,
 						timestamp: new Date()
@@ -98,23 +100,22 @@ export default class App extends Component {
 						this.getData();
 					}).catch(error => {
 						this._toastClosed();
-						this.showToast("Something went wrong. Please try again.");
+						this.showToast('Something went wrong. Please try again.');
 					});
 
-				} else {
-					if (custom_shorturl) {
-						this.showToast("Error. Please enter another custom short URL.");
-					}
-					else {
-						this.shortenUrl();
-					}
+				}
+				else if (customShorturl) {
+					this.showToast('Error. Please enter another custom short URL.');
+				}
+				else {
+					this.shortenUrl();
 				}
 			}).catch(err => {
-				this.showToast("Something went wrong. Please try again.");
+				this.showToast('Something went wrong. Please try again.');
 			});
 		}
 		else {
-			this.showToast("Please enter a valid URL.");
+			this.showToast('Please enter a valid URL.');
 		}
 	}
 
@@ -154,25 +155,25 @@ export default class App extends Component {
 	}
 
 	shortUrlInput = (event) => {
-		var url = this.state.url + '/';
+		let url = this.state.url + '/';
+		let oldVal = event.target.value;
 		switch (event.type) {
 			case 'focusout':
-				if (event.target.value == url) {
-					event.target.value = ''
+				if (event.target.value === url) {
+					event.target.value = '';
 				}
 				break;
 			case 'focus':
 				if (!event.target.value) {
 					setTimeout(() => {
-						event.target.value = url
+						event.target.value = url;
 					}, 1);
 				}
 				break;
 			case 'keydown':
-				var oldVal = event.target.value;
 				setTimeout(() => {
 					if (event.target.value.indexOf(url) !== 0) {
-						if (event.target.value == '') {
+						if (event.target.value === '') {
 							event.target.value = url;
 						}
 						else {

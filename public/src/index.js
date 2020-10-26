@@ -11,8 +11,7 @@ import Worker from 'worker-loader!./Worker.js';
 export default class App extends Component {
 
 	state = {
-		// TODO: Update your url, without slash (ie: goo.gl)
-		url: 'go.limhenry.xyz',
+		url: window.location.href,
 		data: []
 	}
 
@@ -78,7 +77,7 @@ export default class App extends Component {
 
 	shortenUrl = () => {
 		let originalurl = document.getElementById('originalurl').value;
-		let customShorturl = document.getElementById('shorturl').value.replace(this.state.url + '/', '');
+		let customShorturl = document.getElementById('shorturl').value.replace(this.state.url + '', '');
 		let shorturl;
 		if (originalurl) {
 			this.showToast('Loading ...', 0);
@@ -228,7 +227,7 @@ export default class App extends Component {
 									<tr>
 										<td class="original"><a target="_blank" href={item.fullurl}>{item.fullurl}</a></td>
 										<td class="created">{item.created}</td>
-										<td class="short"><a target="_blank" href={'http://' + url + '/' + item.shorturl}>{url}/{item.shorturl}</a></td>
+										<td class="short"><a target="_blank" href={'http://' + url +  item.shorturl}>{url}{item.shorturl}</a></td>
 										<td class="clicks">{item.count}</td>
 									</tr>
 								))}

@@ -8,23 +8,45 @@ html, body {
 	font-weight: 400;
 	color: #444;
 	-webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  --mdc-theme-primary: #0D47A1;
+    -moz-osx-font-smoothing: grayscale;
+    --mdc-theme-primary: #0D47A1;
 }
 
 * {
 	box-sizing: border-box;
 }
 
+.app {
+    height: 100%;
+}
+
 .loading {
-    margin: 36px auto;
-    text-align: center;
+    padding: 64px 0;
+    height: 100%;
+    display: grid;
+    place-items: center;
+}
+
+.toolbar .profile {
+    border-radius: 50%;
+    border: 2px solid #fff;
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+}
+
+.toolbar img {
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
 }
 
 .home {
     display: none;
     min-height: 100%;
     width: 100%;
+    padding-top: 64px;
 }
 
 .header {
@@ -68,6 +90,8 @@ html, body {
     margin: 6px 0;
     background-color: white;
     color: #1976D2;
+    font-weight: 600;
+    letter-spacing: 0;
 }
 
 .header .container {
@@ -120,6 +144,7 @@ table tr {
 
 table td {
     height: 48px;
+    padding-right: 8px;
 }
 
 table tbody tr:hover {
@@ -152,6 +177,35 @@ table .clicks {
     width: 100px;
 }
 
+table .manage {
+    width: 80px;
+}
+
+table .manage .delete {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+table .manage .delete:hover {
+    border-radius: 50%;
+    background-color: #FFCDD2;
+}
+
+table .manage .delete svg {
+    width: 20px;
+    height: 20px;
+    fill: #C62828;
+}
+
+@media screen and (max-width: 1000px) {
+    table {
+        margin: 0;
+    }
+}
+
 @media screen and (max-width: 860px) {
     .toast {
         width: 100%;
@@ -167,6 +221,14 @@ table .clicks {
         width: 100%;
     }
 
+    table .original {
+        width: 50%;
+    }
+
+    table .short {
+        width: 35%;
+    }
+
     table .created {
         display: none;
     }
@@ -176,8 +238,23 @@ table .clicks {
     }
 }
 
-@media screen and (max-width: 1000px) {
-    table {
-        margin: 0;
+@media screen and (max-width: 600px) {
+    .home {
+        padding-top: 56px;
+    }
+
+    p {
+        font-size: 0.9em;
+    }
+
+    .toolbar .profile {
+        width: 42px;
+        height: 42px;
+        margin-right: 4px;
+    }
+    
+    .toolbar img {
+        width: 38px;
+        height: 38px;
     }
 }

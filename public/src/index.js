@@ -8,29 +8,19 @@ import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 import Worker from 'worker-loader!./Worker.js';
+import config from './config';
 
 export default class App extends Component {
 
 	state = {
-		// TODO: Update your url, without slash (ie: goo.gl)
-		url: 'go.limhenry.xyz',
+		baseUrl: config.baseUrl,
 		data: []
 	}
 
 	constructor() {
 		super();
 
-		// TODO: Update the Firebase config below
-		const config = {
-			apiKey: 'AIzaSyDu9g3xIJ5Z46nQrRCYCeOIutx3ZUpxrRo',
-			authDomain: 'url-shortener-d5b38.firebaseapp.com',
-			databaseURL: 'https://url-shortener-d5b38.firebaseio.com',
-			projectId: 'url-shortener-d5b38',
-			storageBucket: 'url-shortener-d5b38.appspot.com',
-			messagingSenderId: '349795577578'
-		};
-
-		firebase.initializeApp(config);
+		firebase.initializeApp(config.firebase);
 		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
 				document.getElementById('loading').style.display = 'none';
@@ -78,7 +68,7 @@ export default class App extends Component {
 
 	shortenUrl = () => {
 		let originalurl = document.getElementById('originalurl').value;
-		let customShorturl = document.getElementById('shorturl').value.replace(this.state.url + '/', '');
+		let customShorturl = document.getElementById('shorturl').value.replace(this.state.baseUrl + '/', '');
 		if (originalurl) {
 			this.showToast('Loading ...', 0);
 			const shorturl = document.getElementById('shorturl').value ? customShorturl : this.generateShortUrl();
@@ -149,7 +139,7 @@ export default class App extends Component {
 	}
 
 	shortUrlInput = (event) => {
-		let url = this.state.url + '/';
+		let url = this.state.baseUrl + '/';
 		switch (event.type) {
 			case 'focusout':
 				if (event.target.value === url) {
@@ -180,7 +170,7 @@ export default class App extends Component {
 		}
 	}
 
-	render({ }, { data, url }) {
+	render({ }, { data, baseUrl }) {
 		return (
 			<div>
 				<Toolbar class={style.toolbar}>
@@ -205,7 +195,7 @@ export default class App extends Component {
 								<input type="url" id="shorturl" onkeydown={this.shortUrlInput} onfocus={this.shortUrlInput} onfocusout={this.shortUrlInput} placeholder="Your custom short URL here (Optional)" />
 								<Button ripple raised id="button" onClick={this.shortenUrl}>Shorten URL</Button>
 							</div>
-							<p>All {url} URLs are public and can be accessed by anyone</p>
+							<p>All {baseUrl} URLs are public and can be accessed by anyone</p>
 						</div>
 					</div>
 					<div class="content">
@@ -223,7 +213,7 @@ export default class App extends Component {
 									<tr>
 										<td class="original"><a target="_blank" rel="noreferrer" href={item.fullurl}>{item.fullurl}</a></td>
 										<td class="created">{item.created}</td>
-										<td class="short"><a target="_blank" rel="noreferrer" href={'http://' + url + '/' + item.shorturl}>{url}/{item.shorturl}</a></td>
+										<td class="short"><a target="_blank" rel="noreferrer" href={'http://' + baseUrl + '/' + item.shorturl}>{baseUrl}/{item.shorturl}</a></td>
 										<td class="clicks">{item.count}</td>
 									</tr>
 								))}

@@ -13,6 +13,7 @@
   "eslintConfig": {
     "extends": "eslint-config-synacor",
     "rules": {
+      "no-alert": "off",
       "no-unused-vars": "warn",
       "react/sort-comp": "off",
       "react/prefer-stateless-function": "off"
@@ -29,7 +30,7 @@
     "worker-loader": "^1.1.0"
   },
   "dependencies": {
-    "firebase": "^4.6.2",
+    "firebase": "^8.0.0",
     "preact": "^8.2.1",
     "preact-compat": "^3.17.0",
     "preact-material-components": "^1.2.4"

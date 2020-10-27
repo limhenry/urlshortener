@@ -1,44 +1,36 @@
-import { h, Component } from 'preact';
-import Toolbar from 'preact-material-components/Toolbar';
-import 'preact-material-components/Toolbar/style.css';
-import Button from 'preact-material-components/Button';
+import { Component } from 'preact';
+import { TopAppBar, Button } from 'preact-material-components';
+import 'preact-material-components/TopAppBar/style.css';
 import 'preact-material-components/Button/style.css';
-import style from './style';
-import firebase from 'firebase';
-import firestore from 'firebase/firestore';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/firestore';
 import Worker from 'worker-loader!./Worker.js';
+import config from './config.js';
+import './style';
 
 export default class App extends Component {
 
 	state = {
-		// TODO: Update your url, without slash (ie: goo.gl)
-		url: 'go.limhenry.xyz',
+		baseUrl: config.baseUrl,
 		data: [],
+		user: false
 	}
 
 	constructor() {
 		super();
 
-		// TODO: Update the Firebase config below 
-		const config = {
-			apiKey: "AIzaSyDu9g3xIJ5Z46nQrRCYCeOIutx3ZUpxrRo",
-			authDomain: "url-shortener-d5b38.firebaseapp.com",
-			databaseURL: "https://url-shortener-d5b38.firebaseio.com",
-			projectId: "url-shortener-d5b38",
-			storageBucket: "url-shortener-d5b38.appspot.com",
-			messagingSenderId: "349795577578"
-		};
-
-		firebase.initializeApp(config);
+		firebase.initializeApp(config.firebase);
 		firebase.auth().onAuthStateChanged((user) => {
 			if (user) {
+				this.setState({ user });
 				document.getElementById('loading').style.display = 'none';
 				document.getElementById('home').style.display = 'block';
-				this.showToast("Loading ...", 0);
+				this.showToast('Loading ...', 0);
 				this.getData();
 			}
 			else {
-				var provider = new firebase.auth.GoogleAuthProvider();
+				let provider = new firebase.auth.GoogleAuthProvider();
 				firebase.auth().signInWithRedirect(provider);
 			}
 		});
@@ -46,75 +38,74 @@ export default class App extends Component {
 	}
 
 	getData = () => {
-		var worker = new Worker();
+		let worker = new Worker();
 		worker.addEventListener('message', (d) => {
 			this.setState({ data: d.data });
 			document.getElementById('originalurl').value = '';
 			document.getElementById('shorturl').value = '';
 			this._toastClosed();
-		})
+		});
 
-		var data = [];
+		let data = [];
 		this.db.collection('url').orderBy('timestamp', 'desc').get().then(querySnapshot => {
 			querySnapshot.forEach(doc => {
-				data.push(doc.data())
+				const d = doc.data();
+				d.id = doc.id;
+				d.timestamp = d.timestamp.toDate();
+				data.push(d);
 			});
 			worker.postMessage(data);
-		}).catch(error => {
-			this.showToast("Something went wrong. Please refresh the page.");
+		}).catch(() => {
+			this.showToast('Something went wrong. Please refresh the page.');
 		});
 	}
 
 	generateShortUrl = () => {
-		var shorturl = '';
-		var length = 6;
-		var string = '23456789abcdefghijkmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ';
-		for (var i = 0; i < length; i++) {
+		let shorturl = '';
+		let length = 6;
+		let string = '23456789abcdefghijkmnpqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWXYZ';
+		for (let i = 0; i < length; i++) {
 			shorturl += string.charAt(Math.floor(Math.random() * string.length));
 		}
 		return shorturl;
 	}
 
 	shortenUrl = () => {
-		var originalurl = document.getElementById('originalurl').value;
-		var custom_shorturl = document.getElementById('shorturl').value.replace(this.state.url + '/', '');
+		let originalurl = document.getElementById('originalurl').value;
+		let customShorturl = document.getElementById('shorturl').value.replace(this.state.baseUrl + '/', '');
 		if (originalurl) {
-			this.showToast("Loading ...", 0);
-			if (document.getElementById('shorturl').value) {
-				var shorturl = custom_shorturl;
-			}
-			else {
-				var shorturl = this.generateShortUrl();
-			}
-			var urlRef = this.db.collection('url').doc(shorturl);
+			this.showToast('Loading ...', 0);
+			const shorturlValue = document.getElementById('shorturl').value;
+			const shorturl = shorturlValue ? customShorturl : this.generateShortUrl();
+			let urlRef = this.db.collection('url').doc(shorturl);
 			urlRef.get().then(doc => {
 				if (!doc.exists) {
-					this.db.collection("url").doc(shorturl).set({
-						shorturl: shorturl,
+					this.db.collection('url').doc(shorturl).set({
+						shorturl,
 						fullurl: originalurl,
 						count: 0,
 						timestamp: new Date()
 					}).then(() => {
 						this.getData();
+						this.showToast('Added successfully.');
 					}).catch(error => {
 						this._toastClosed();
-						this.showToast("Something went wrong. Please try again.");
+						this.showToast('Something went wrong. Please try again.');
 					});
 
-				} else {
-					if (custom_shorturl) {
-						this.showToast("Error. Please enter another custom short URL.");
-					}
-					else {
-						this.shortenUrl();
-					}
+				}
+				else if (customShorturl) {
+					this.showToast('Error. Please enter another custom short URL.');
+				}
+				else {
+					this.shortenUrl();
 				}
 			}).catch(err => {
-				this.showToast("Something went wrong. Please try again.");
+				this.showToast('Something went wrong. Please try again.');
 			});
 		}
 		else {
-			this.showToast("Please enter a valid URL.");
+			this.showToast('Please enter a valid URL.');
 		}
 	}
 
@@ -154,25 +145,25 @@ export default class App extends Component {
 	}
 
 	shortUrlInput = (event) => {
-		var url = this.state.url + '/';
+		let url = this.state.baseUrl + '/';
 		switch (event.type) {
 			case 'focusout':
-				if (event.target.value == url) {
-					event.target.value = ''
+				if (event.target.value === url) {
+					event.target.value = '';
 				}
 				break;
 			case 'focus':
 				if (!event.target.value) {
 					setTimeout(() => {
-						event.target.value = url
+						event.target.value = url;
 					}, 1);
 				}
 				break;
-			case 'keydown':
-				var oldVal = event.target.value;
+			case 'keydown': {
+				const oldVal = event.target.value;
 				setTimeout(() => {
 					if (event.target.value.indexOf(url) !== 0) {
-						if (event.target.value == '') {
+						if (event.target.value === '') {
 							event.target.value = url;
 						}
 						else {
@@ -181,19 +172,40 @@ export default class App extends Component {
 					}
 				}, 1);
 				break;
+			}
 		}
 	}
 
-	render({ }, { data, url }) {
+	deleteUrl = (e) => () => {
+		const msg = `This action cannot be undone. Are you sure you want to delete ${this.state.baseUrl}/${e.shorturl}?`;
+		if (!window.confirm(msg)) return;
+		this.db.collection('url').doc(e.id).delete()
+			.then(() => {
+				this.showToast('Delete successful.');
+				this.getData();
+			})
+			.catch((e) => {
+				this.showToast('Unable to delete URL. Please try again.');
+			});
+	}
+
+	render({ }, { data, baseUrl, user }) {
 		return (
-			<div>
-				<Toolbar class={style.toolbar}>
-					<Toolbar.Row>
-						<Toolbar.Section align-start>
-							<Toolbar.Title>URL Shortener</Toolbar.Title>
-						</Toolbar.Section>
-					</Toolbar.Row>
-				</Toolbar>
+			<div class="app">
+				<TopAppBar className="toolbar mdc-top-app-bar--fixed">
+					<TopAppBar.Row>
+						<TopAppBar.Section align-start>
+							<TopAppBar.Title>URL Shortener</TopAppBar.Title>
+						</TopAppBar.Section>
+						{ user && (
+							<TopAppBar.Section align-end>
+								<div class="profile">
+									<img src={user.photoURL} title={`${user.displayName} · ${user.email}`} />
+								</div>
+							</TopAppBar.Section>
+						)}
+					</TopAppBar.Row>
+				</TopAppBar>
 				<div id="toast" class="toast">Loading ...</div>
 				<div id="loading" class="loading">
 					Loading ...
@@ -209,7 +221,7 @@ export default class App extends Component {
 								<input type="url" id="shorturl" onkeydown={this.shortUrlInput} onfocus={this.shortUrlInput} onfocusout={this.shortUrlInput} placeholder="Your custom short URL here (Optional)" />
 								<Button ripple raised id="button" onClick={this.shortenUrl}>Shorten URL</Button>
 							</div>
-							<p>All {url} URLs are public and can be accessed by anyone</p>
+							<p>All <b>{baseUrl}</b> URLs are public and can be accessed by anyone.</p>
 						</div>
 					</div>
 					<div class="content">
@@ -220,15 +232,28 @@ export default class App extends Component {
 									<th class="created">Created</th>
 									<th class="short">Short URL</th>
 									<th class="clicks">All Clicks</th>
+									<th class="manage">Manage</th>
 								</tr>
 							</thead>
 							<tbody>
-								{data.map((item, i) => (
+								{data.map((item) => (
 									<tr>
-										<td class="original"><a target="_blank" href={item.fullurl}>{item.fullurl}</a></td>
-										<td class="created">{item.created}</td>
-										<td class="short"><a target="_blank" href={'http://' + url + '/' + item.shorturl}>{url}/{item.shorturl}</a></td>
+										<td class="original">
+											<a target="_blank" rel="noreferrer"  href={item.fullurl} title={item.fullurl}>{item.fullurl}</a>
+										</td>
+										<td class="created">{item.timestamp.toDateString()}</td>
+										<td class="short">
+											<a target="_blank" rel="noreferrer" href={'https://' + baseUrl + '/' + item.shorturl}>{baseUrl}/{item.shorturl}</a>
+										</td>
 										<td class="clicks">{item.count}</td>
+										<td class="manage">
+											<div class="delete" onClick={this.deleteUrl(item)}>
+												<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+													<path d="M0 0h24v24H0V0z" fill="none" />
+													<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v10zM9 9h6c.55 0 1 .45 1 1v8c0 .55-.45 1-1 1H9c-.55 0-1-.45-1-1v-8c0-.55.45-1 1-1zm6.5-5l-.71-.71c-.18-.18-.44-.29-.7-.29H9.91c-.26 0-.52.11-.7.29L8.5 4H6c-.55 0-1 .45-1 1s.45 1 1 1h12c.55 0 1-.45 1-1s-.45-1-1-1h-2.5z" />
+												</svg>
+											</div>
+										</td>
 									</tr>
 								))}
 							</tbody>
@@ -238,6 +263,7 @@ export default class App extends Component {
 									<th class="created">Created</th>
 									<th class="short">Short URL</th>
 									<th class="clicks">All Clicks</th>
+									<th class="manage">Manage</th>
 								</tr>
 							</thead>
 						</table>

@@ -34,6 +34,7 @@ html, body {
     height: 46px;
     display: grid;
     place-items: center;
+    cursor: pointer;
 }
 
 .toolbar img {

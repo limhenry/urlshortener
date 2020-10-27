@@ -55,7 +55,12 @@ export default class App extends Component {
 				data.push(d);
 			});
 			worker.postMessage(data);
-		}).catch(() => {
+		}).catch((e) => {
+			if (e.code === 'permission-denied') {
+				this.showToast('Permission denied. Logging out in 5 seconds ...');
+				setTimeout(() => this.logout(), 5000);
+				return;
+			}
 			this.showToast('Something went wrong. Please refresh the page.');
 		});
 	}
@@ -188,6 +193,16 @@ export default class App extends Component {
 			});
 	}
 
+	logout = () => {
+		firebase.auth().signOut()
+			.then(() => {
+				window.location.reload();
+			})
+			.catch(() => {
+				this.showToast('Unable to logout. Please try again.');
+			});
+	}
+
 	render({ }, { data, baseUrl, user }) {
 		return (
 			<div class="app">
@@ -198,7 +213,7 @@ export default class App extends Component {
 						</TopAppBar.Section>
 						{ user && (
 							<TopAppBar.Section align-end>
-								<div class="profile">
+								<div class="profile" onClick={this.logout}>
 									<img src={user.photoURL} title={`${user.displayName} · ${user.email}`} />
 								</div>
 							</TopAppBar.Section>
